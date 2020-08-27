@@ -1,0 +1,4 @@
+.idea
+js/build
+node_modules/
+/src/dist/constants/streamUrl.js
