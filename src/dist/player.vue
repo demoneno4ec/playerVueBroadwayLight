@@ -1,11 +1,16 @@
 <template>
-    <stream :worker="this.worker"
-            :url="this.url"
-    ></stream>
+    <div>
+        <stream :worker="this.worker"
+                :url="this.url"
+        ></stream>
+        <button @click="this.play">play</button>
+        <button @click="this.stop">stop</button>
+    </div>
 </template>
 
 <script>
-    import stream from './stream/stream.vue';
+    import stream from './components/stream/stream.vue';
+    import {eventBus} from './functions/eventBus';
     import {streamUrl} from "./constants/streamUrl";
 
     export default {
@@ -23,5 +28,13 @@
                 url: streamUrl,
             }
         },
+        methods: {
+            play() {
+                eventBus.$emit('PlayVideo');
+            },
+            stop() {
+                eventBus.$emit('PauseVideo');
+            },
+        }
     }
 </script>

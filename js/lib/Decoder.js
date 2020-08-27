@@ -34,14 +34,6 @@
         console.trace();
     }
 
-
-    function assert(condition, message) {
-        if (!condition) {
-            error(message);
-        }
-    }
-
-
     var getModule = function (par_broadwayOnHeadersDecoded, par_broadwayOnPictureDecoded) {
 
 
@@ -129,7 +121,7 @@
                     throw ex
                 }
             }));
-            process["on"]("unhandledRejection", (function (reason, p) {
+            process["on"]("unhandledRejection", (() => {
                 process["exit"](1)
             }));
             Module["inspect"] = (function () {
@@ -156,7 +148,7 @@
                 Module["arguments"] = arguments
             }
             if (typeof quit === "function") {
-                Module["quit"] = (function (status, toThrow) {
+                Module["quit"] = (function (status) {
                     quit(status)
                 })
             }
@@ -181,7 +173,7 @@
                 xhr.open("GET", url, true);
                 xhr.responseType = "arraybuffer";
                 xhr.onload = function xhr_onload() {
-                    if (xhr.status == 200 || xhr.status == 0 && xhr.response) {
+                    if (xhr.status === 200 || xhr.status === 0 && xhr.response) {
                         onload(xhr.response);
                         return
                     }
@@ -205,7 +197,6 @@
                 Module[key] = moduleOverrides[key]
             }
         }
-        moduleOverrides = undefined;
         var STACK_ALIGN = 16;
 
         function staticAlloc(size) {
@@ -217,8 +208,7 @@
 
         function alignMemory(size, factor) {
             if (!factor) factor = STACK_ALIGN;
-            var ret = size = Math.ceil(size / factor) * factor;
-            return ret
+            return Math.ceil(size / factor) * factor;
         }
 
         var asm2wasmImports = {
@@ -228,7 +218,6 @@
                 debugger
             })
         };
-        var functionPointers = new Array(0);
         var GLOBAL_BASE = 1024;
         var ABORT = 0;
         var EXITSTATUS = 0;
@@ -247,9 +236,9 @@
             while (1) {
                 t = HEAPU8[ptr + i >> 0];
                 hasUtf |= t;
-                if (t == 0 && !length) break;
+                if (t === 0 && !length) break;
                 i++;
-                if (length && i == length) break
+                if (length && i === length) break
             }
             if (!length) length = i;
             var ret = "";
@@ -320,7 +309,6 @@
             return UTF8ArrayToString(HEAPU8, ptr)
         }
 
-        var UTF16Decoder = typeof TextDecoder !== "undefined" ? new TextDecoder("utf-16le") : undefined;
         var WASM_PAGE_SIZE = 65536;
         var ASMJS_PAGE_SIZE = 16777216;
 
@@ -384,10 +372,6 @@
         function getTotalMemory() {
             return TOTAL_MEMORY
         }
-
-        HEAP32[0] = 1668509029;
-        HEAP16[1] = 25459;
-        if (HEAPU8[2] !== 115 || HEAPU8[3] !== 99) throw"Runtime error: expected the system to be little-endian!";
 
         function callRuntimeCallbacks(callbacks) {
             while (callbacks.length > 0) {
@@ -460,27 +444,6 @@
             __ATPOSTRUN__.unshift(cb)
         }
 
-        var Math_abs = Math.abs;
-        var Math_cos = Math.cos;
-        var Math_sin = Math.sin;
-        var Math_tan = Math.tan;
-        var Math_acos = Math.acos;
-        var Math_asin = Math.asin;
-        var Math_atan = Math.atan;
-        var Math_atan2 = Math.atan2;
-        var Math_exp = Math.exp;
-        var Math_log = Math.log;
-        var Math_sqrt = Math.sqrt;
-        var Math_ceil = Math.ceil;
-        var Math_floor = Math.floor;
-        var Math_pow = Math.pow;
-        var Math_imul = Math.imul;
-        var Math_fround = Math.fround;
-        var Math_round = Math.round;
-        var Math_min = Math.min;
-        var Math_max = Math.max;
-        var Math_clz32 = Math.clz32;
-        var Math_trunc = Math.trunc;
         var runDependencies = 0;
         var runDependencyWatcher = null;
         var dependenciesFulfilled = null;
@@ -519,24 +482,15 @@
         }
 
         function integrateWasmJS() {
+            let wasmBinaryFile = "avc.wasm";
 
-
-            var wasmTextFile = "avc.wast";
-            var wasmBinaryFile = "avc.wasm";
-            var asmjsCodeFile = "avc.temp.asm.js";
             if (typeof Module["locateFile"] === "function") {
-                if (!isDataURI(wasmTextFile)) {
-                    wasmTextFile = Module["locateFile"](wasmTextFile)
-                }
                 if (!isDataURI(wasmBinaryFile)) {
                     wasmBinaryFile = Module["locateFile"](wasmBinaryFile)
                 }
-                if (!isDataURI(asmjsCodeFile)) {
-                    asmjsCodeFile = Module["locateFile"](asmjsCodeFile)
-                }
             }
 
-            var wasmPageSize = 64 * 1024;
+            let wasmPageSize = 64 * 1024;
             var info = {"global": null, "env": null, "asm2wasm": asm2wasmImports, "parent": Module};
             var exports = null;
 
@@ -584,7 +538,7 @@
                         return getBinary()
                     }))
                 }
-                return new Promise((function (resolve, reject) {
+                return new Promise((function (resolve) {
                     resolve(getBinary())
                 }))
             }
@@ -724,16 +678,22 @@
         Module["STATIC_BUMP"] = STATIC_BUMP;
         STATICTOP += 16;
         var SYSCALLS = {
-            varargs: 0, get: (function (varargs) {
+            varargs: 0,
+            get: ( () => {
                 SYSCALLS.varargs += 4;
-                var ret = HEAP32[SYSCALLS.varargs - 4 >> 2];
-                return ret
+                return HEAP32[SYSCALLS.varargs - 4 >> 2]
             }), getStr: (function () {
-                var ret = Pointer_stringify(SYSCALLS.get());
-                return ret
-            }), get64: (function () {
-                var low = SYSCALLS.get(), high = SYSCALLS.get();
-                if (low >= 0) assert(high === 0); else assert(high === -1);
+                return Pointer_stringify(SYSCALLS.get())
+            }), get64: (() => {
+                let low = SYSCALLS.get(),
+                    high = SYSCALLS.get(),
+                    hightCondition;
+                if (low >= 0) {
+                    hightCondition = high === 0;
+                } else {
+                    hightCondition = high === -1;
+                }
+                assert(hightCondition);
                 return low
             }), getZero: (function () {
                 assert(SYSCALLS.get() === 0)
@@ -743,15 +703,16 @@
         function ___syscall140(which, varargs) {
             SYSCALLS.varargs = varargs;
             try {
-                var stream = SYSCALLS.getStreamFromFD(), offset_high = SYSCALLS.get(), offset_low = SYSCALLS.get(),
+                var stream = SYSCALLS.getStreamFromFD(),
                     result = SYSCALLS.get(), whence = SYSCALLS.get();
-                var offset = offset_low;
+
+                var offset = SYSCALLS.get();
                 FS.llseek(stream, offset, whence);
                 HEAP32[result >> 2] = stream.position;
                 if (stream.getdents && offset === 0 && whence === 0) stream.getdents = null;
                 return 0
             } catch (e) {
-                if (typeof FS === "undefined" || !(e instanceof FS.ErrnoError)) abort(e);
+                if (errorInstanceofFS(FS, e)) abort(e);
                 return -e.errno
             }
         }
@@ -774,17 +735,17 @@
                         }
                     })
                 }
-                for (var i = 0; i < iovcnt; i++) {
-                    var ptr = HEAP32[iov + i * 8 >> 2];
-                    var len = HEAP32[iov + (i * 8 + 4) >> 2];
-                    for (var j = 0; j < len; j++) {
+                for (let i = 0; i < iovcnt; i++) {
+                    let ptr = HEAP32[iov + i * 8 >> 2];
+                    let len = HEAP32[iov + (i * 8 + 4) >> 2];
+                    for (let j = 0; j < len; j++) {
                         ___syscall146.printChar(stream, HEAPU8[ptr + j])
                     }
                     ret += len
                 }
                 return ret
             } catch (e) {
-                if (typeof FS === "undefined" || !(e instanceof FS.ErrnoError)) abort(e);
+                if (errorInstanceofFS(FS, e)) abort(e);
                 return -e.errno
             }
         }
@@ -794,9 +755,13 @@
             try {
                 return 0
             } catch (e) {
-                if (typeof FS === "undefined" || !(e instanceof FS.ErrnoError)) abort(e);
+                if (errorInstanceofFS(FS, e)) abort(e);
                 return -e.errno
             }
+        }
+
+        function errorInstanceofFS(FS, error) {
+            return typeof FS === "undefined" || !(error instanceof FS.ErrnoError);
         }
 
         function ___syscall6(which, varargs) {
@@ -837,6 +802,7 @@
         STACK_BASE = STACKTOP = alignMemory(STATICTOP);
         STACK_MAX = STACK_BASE + TOTAL_STACK;
         DYNAMIC_BASE = alignMemory(STACK_MAX);
+        //!TODO Почему то падает)) надо будет узнать почему
         HEAP32[DYNAMICTOP_PTR >> 2] = DYNAMIC_BASE;
         staticSealed = true;
         Module["wasmTableSize"] = 10;
@@ -860,29 +826,28 @@
         };
         var asm = Module["asm"](Module.asmGlobalArg, Module.asmLibraryArg, buffer);
         Module["asm"] = asm;
-        var _broadwayCreateStream = Module["_broadwayCreateStream"] = (function () {
+        Module["_broadwayCreateStream"] = (function () {
             return Module["asm"]["_broadwayCreateStream"].apply(null, arguments)
         });
-        var _broadwayExit = Module["_broadwayExit"] = (function () {
+        Module["_broadwayExit"] = (function () {
             return Module["asm"]["_broadwayExit"].apply(null, arguments)
         });
-        var _broadwayGetMajorVersion = Module["_broadwayGetMajorVersion"] = (function () {
+        Module["_broadwayGetMajorVersion"] = (function () {
             return Module["asm"]["_broadwayGetMajorVersion"].apply(null, arguments)
         });
-        var _broadwayGetMinorVersion = Module["_broadwayGetMinorVersion"] = (function () {
+        Module["_broadwayGetMinorVersion"] = (function () {
             return Module["asm"]["_broadwayGetMinorVersion"].apply(null, arguments)
         });
-        var _broadwayInit = Module["_broadwayInit"] = (function () {
+        Module["_broadwayInit"] = (function () {
             return Module["asm"]["_broadwayInit"].apply(null, arguments)
         });
-        var _broadwayPlayStream = Module["_broadwayPlayStream"] = (function () {
+        Module["_broadwayPlayStream"] = (function () {
             return Module["asm"]["_broadwayPlayStream"].apply(null, arguments)
         });
         Module["asm"] = asm;
 
         function ExitStatus(status) {
             this.name = "ExitStatus";
-            this.message = "Program terminated with exit(" + status + ")";
             this.status = status
         }
 
@@ -1109,7 +1074,7 @@
 
                     infos[0].finishDecoding = nowValue();
                     var sliceInfoAr = [];
-                    for (var i = 0; i < 20; ++i) {
+                    for (let i = 0; i < 20; ++i) {
                         sliceInfoAr.push(sliceInfo[i]);
                     }
                     infos[0].sliceInfoAr = sliceInfoAr;
@@ -1121,7 +1086,8 @@
             var ModuleCallback = getModule.apply(
                 fakeWindow,
                 [
-                    function () {},
+                    function () {
+                    },
                     onPicFun
                 ]);
 
@@ -1142,11 +1108,7 @@
             };
 
             ModuleCallback(function (Module) {
-                var HEAP8 = Module.HEAP8;
                 var HEAPU8 = Module.HEAPU8;
-                var HEAP16 = Module.HEAP16;
-                var HEAP32 = Module.HEAP32;
-                // from old constructor
                 Module._broadwayInit();
 
                 /**
@@ -1158,7 +1120,10 @@
                 toU32Array = function (ptr, length) {
                     return new Uint32Array(HEAPU8.buffer, ptr, length);
                 };
-                instance.streamBuffer = toU8Array(Module._broadwayCreateStream(MAX_STREAM_BUFFER_LENGTH), MAX_STREAM_BUFFER_LENGTH);
+                instance.streamBuffer = toU8Array(
+                    Module._broadwayCreateStream(MAX_STREAM_BUFFER_LENGTH),
+                    MAX_STREAM_BUFFER_LENGTH
+                );
                 instance.pictureBuffers = {};
                 // collect extra infos that are provided with the nal units
                 instance.infoAr = [];
@@ -1263,8 +1228,7 @@
                 }
 
                 if (bufferedCalls.length) {
-                    var bi = 0;
-                    for (bi = 0; bi < bufferedCalls.length; ++bi) {
+                    for (let bi = 0; bi < bufferedCalls.length; ++bi) {
                         instance.decode(bufferedCalls[bi][0], bufferedCalls[bi][1], bufferedCalls[bi][2]);
                     }
                     bufferedCalls = [];
@@ -1634,10 +1598,7 @@
 
             };
 
-            var sliceMsgFun = function () {
-            };
-
-            var setSliceCnt = function (parSliceCnt) {
+            let setSliceCnt = function (parSliceCnt) {
                 sliceCnt = parSliceCnt;
                 lastSliceNum = sliceCnt - 1;
             };

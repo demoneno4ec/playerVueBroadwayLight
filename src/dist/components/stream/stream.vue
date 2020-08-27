@@ -6,9 +6,10 @@
 </template>
 
 <script>
-    import axios from 'axios';
     import streamCanvas from './streamCanvas.vue';
-    import {eventBus} from './eventBus';
+    import {eventBus} from '../../functions/eventBus';
+    import {httpGetData} from "../../functions/httpGetData";
+    import {toUint8Array} from "../../functions/toUint8Array";
 
     export default {
         name: "stream",
@@ -30,40 +31,18 @@
         data() {
             return {
                 render: true,
+                intervalPlay: 0,
+                interval: 50,
+                play: false,
             }
         },
         methods: {
-            httpGetData() {
-                axios
-                    .get(this.url, {})
-                    .then(response => {
-                        if (response.status === 200) {
-                            this.decode(response.data)
-                        }
-                    })
-                    .catch(error => {
-                        console.group('Сервер с картинкой не отвечает.');
-                        console.log(error);
-                        console.groupEnd();
-                    });
-            },
             decode(data) {
                 if (data.length === 0) {
                     return;
                 }
-                let bin = this.toUint8Array(data);
+                let bin = toUint8Array(data);
                 this.decodePlayer(bin);
-            },
-            toUint8Array(parStr) {
-                let raw = window.atob(parStr),
-                    rawLength = raw.length,
-                    array = new Uint8Array(new ArrayBuffer(rawLength));
-
-                for (let i = 0; i < rawLength; i++) {
-                    array[i] = raw.charCodeAt(i);
-                }
-
-                return array;
             },
             decodePlayer(parData) {
                 let parDataLength = parData.length,
@@ -98,6 +77,36 @@
 
                 eventBus.$emit('renderFrame', options);
             },
+            updateFrame() {
+                httpGetData(
+                    this.url,
+                    {},
+                    response => {
+                        if (response.status === 200) {
+                            this.decode(response.data)
+                        }
+                    },
+                    error => {
+                        console.group('Сервер с картинкой не отвечает.');
+                        console.log(error);
+                        console.groupEnd();
+                    }
+                );
+            },
+            playVideo() {
+                if (this.play === false) {
+                    this.play = true;
+                    this.intervalPlay = setInterval(this.updateFrame, this.interval);
+                }
+            },
+            pauseVideo() {
+                if (this.play === true) {
+                    if (this.intervalPlay) {
+                        clearInterval(this.intervalPlay);
+                    }
+                    this.play = false;
+                }
+            },
         },
         mounted() {
             this.worker.onmessage = (e) => {
@@ -114,7 +123,14 @@
                 );
             };
 
-            this.httpGetData();
+            this.updateFrame();
+
+            eventBus.$on('PlayVideo', () => {
+                this.playVideo();
+            });
+            eventBus.$on('PauseVideo', () => {
+                this.pauseVideo();
+            });
         }
     }
 </script>

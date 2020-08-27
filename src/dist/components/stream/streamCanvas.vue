@@ -3,7 +3,7 @@
 </template>
 
 <script>
-    import {eventBus} from './eventBus';
+    import {eventBus} from '../../functions/eventBus';
 
     export default {
         name: "streamCanvas",
