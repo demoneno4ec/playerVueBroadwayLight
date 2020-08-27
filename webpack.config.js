@@ -9,7 +9,7 @@ module.exports = {
         main: './src/index.js',
     },
     output: {
-        path: '/home/pestovmv/projects/vueBroadway/js/build',
+        path: __dirname + '/js/build',
         publicPath: './js/build',
         filename: '[name].js',
         sourceMapFilename: "[name].js.map",
