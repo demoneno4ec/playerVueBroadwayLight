@@ -2,14 +2,14 @@
 
 import Vue from 'vue'
 import player from './dist/player.vue';
-import {streamUrl} from "./dist/constants/streamUrl";
 
 window.onload = function () {
-    let app = new Vue({
+    let worker = new Worker('/js/lib/Decoder.js');
+    new Vue({
         el: '.vue__app',
         render: h => h(player, {
             props: {
-                streamUrl: streamUrl
+                worker: worker
             }
         })
     });

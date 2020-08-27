@@ -13,7 +13,6 @@
         root.Decoder = factory();
     }
 }(this, function () {
-
     var global;
 
     function initglobal() {
@@ -104,8 +103,8 @@
             var nodePath;
             Module["read"] = function shell_read(filename, binary) {
                 var ret;
-                if (!nodeFS) nodeFS = (null)("fs");
-                if (!nodePath) nodePath = (null)("path");
+                if (!nodeFS) nodeFS = null("fs");
+                if (!nodePath) nodePath = null("path");
                 filename = nodePath["normalize"](filename);
                 ret = nodeFS["readFileSync"](filename);
                 return binary ? ret : ret.toString()
@@ -281,25 +280,25 @@
                 while (1) {
                     u0 = u8Array[idx++];
                     if (!u0) return str;
-                    if (!(u0 & 128)) {
+                    if (!(u0 && 128)) {
                         str += String.fromCharCode(u0);
                         continue
                     }
                     u1 = u8Array[idx++] & 63;
-                    if ((u0 & 224) == 192) {
+                    if ((u0 & 224) === 192) {
                         str += String.fromCharCode((u0 & 31) << 6 | u1);
                         continue
                     }
                     u2 = u8Array[idx++] & 63;
-                    if ((u0 & 240) == 224) {
+                    if ((u0 & 240) === 224) {
                         u0 = (u0 & 15) << 12 | u1 << 6 | u2
                     } else {
                         u3 = u8Array[idx++] & 63;
-                        if ((u0 & 248) == 240) {
+                        if ((u0 & 248) === 240) {
                             u0 = (u0 & 7) << 18 | u1 << 12 | u2 << 6 | u3
                         } else {
                             u4 = u8Array[idx++] & 63;
-                            if ((u0 & 252) == 248) {
+                            if ((u0 & 252) === 248) {
                                 u0 = (u0 & 3) << 24 | u1 << 18 | u2 << 12 | u3 << 6 | u4
                             } else {
                                 u5 = u8Array[idx++] & 63;
@@ -498,7 +497,7 @@
             if (Module["monitorRunDependencies"]) {
                 Module["monitorRunDependencies"](runDependencies)
             }
-            if (runDependencies == 0) {
+            if (runDependencies === 0) {
                 if (runDependencyWatcher !== null) {
                     clearInterval(runDependencyWatcher);
                     runDependencyWatcher = null
@@ -520,6 +519,8 @@
         }
 
         function integrateWasmJS() {
+
+
             var wasmTextFile = "avc.wast";
             var wasmBinaryFile = "avc.wasm";
             var asmjsCodeFile = "avc.temp.asm.js";
@@ -534,9 +535,11 @@
                     asmjsCodeFile = Module["locateFile"](asmjsCodeFile)
                 }
             }
+
             var wasmPageSize = 64 * 1024;
             var info = {"global": null, "env": null, "asm2wasm": asm2wasmImports, "parent": Module};
             var exports = null;
+
 
             function mergeMemory(newBuffer) {
                 var oldBuffer = Module["buffer"];
@@ -561,12 +564,13 @@
                     }
                     if (Module["readBinary"]) {
                         return Module["readBinary"](wasmBinaryFile)
-                    } else {
-                        throw"on the web, we need the wasm binary to be preloaded and set on Module['wasmBinary']. emcc.py will do that for you when generating HTML (but not JS)"
                     }
+
                 } catch (err) {
                     abort(err)
                 }
+
+                abort("on the web, we need the wasm binary to be preloaded and set on Module['wasmBinary']. emcc.py will do that for you when generating HTML (but not JS)");
             }
 
             function getBinaryPromise() {
@@ -630,12 +634,18 @@
                     }))
                 }
 
-                if (!Module["wasmBinary"] && typeof WebAssembly.instantiateStreaming === "function" && !isDataURI(wasmBinaryFile) && typeof fetch === "function") {
-                    WebAssembly.instantiateStreaming(fetch(wasmBinaryFile, {credentials: "same-origin"}), info).then(receiveInstantiatedSource).catch((function (reason) {
-                        Module["printErr"]("wasm streaming compile failed: " + reason);
-                        Module["printErr"]("falling back to ArrayBuffer instantiation");
-                        instantiateArrayBuffer(receiveInstantiatedSource)
-                    }))
+                if (!Module["wasmBinary"]
+                    && typeof WebAssembly.instantiateStreaming === "function"
+                    && !isDataURI(wasmBinaryFile)
+                    && typeof fetch === "function") {
+                    WebAssembly.instantiateStreaming(
+                        fetch(wasmBinaryFile, {credentials: "same-origin"}), info)
+                        .then(receiveInstantiatedSource)
+                        .catch((function (reason) {
+                            Module["printErr"]("wasm streaming compile failed: " + reason);
+                            Module["printErr"]("falling back to ArrayBuffer instantiation");
+                            instantiateArrayBuffer(receiveInstantiatedSource)
+                        }))
                 } else {
                     instantiateArrayBuffer(receiveInstantiatedSource)
                 }
@@ -672,6 +682,7 @@
             var finalMethod = "";
             Module["asm"] = (function (global, env, providedBuffer) {
                 env = fixImports(env);
+
                 if (!env["table"]) {
                     var TABLE_SIZE = Module["wasmTableSize"];
                     if (TABLE_SIZE === undefined) TABLE_SIZE = 1024;
@@ -963,10 +974,6 @@
         Module["noExitRuntime"] = true;
         run()
 
-
-        //   return Module;
-        //})();
-
         var resultModule;
         if (typeof global !== "undefined") {
             if (global.Module) {
@@ -993,6 +1000,7 @@
             moduleReady(resultModule);
         };
         return function (callback) {
+
             if (moduleIsReady) {
                 callback(resultModule);
             } else {
@@ -1110,8 +1118,12 @@
                 }.bind(this);
             }
 
-            var ModuleCallback = getModule.apply(fakeWindow, [function () {
-            }, onPicFun]);
+            var ModuleCallback = getModule.apply(
+                fakeWindow,
+                [
+                    function () {},
+                    onPicFun
+                ]);
 
 
             var MAX_STREAM_BUFFER_LENGTH = 1024 * 1024;
@@ -1144,7 +1156,6 @@
                     return HEAPU8.subarray(ptr, ptr + length);
                 };
                 toU32Array = function (ptr, length) {
-                    //var tmp = HEAPU8.subarray(ptr, ptr + (length * 4));
                     return new Uint32Array(HEAPU8.buffer, ptr, length);
                 };
                 instance.streamBuffer = toU8Array(Module._broadwayCreateStream(MAX_STREAM_BUFFER_LENGTH), MAX_STREAM_BUFFER_LENGTH);
@@ -1258,7 +1269,6 @@
                     }
                     bufferedCalls = [];
                 }
-
                 instance.onDecoderReady(instance);
 
             });
@@ -1538,6 +1548,9 @@
 
   */
 
+        function postMessageBox(first, second, line) {
+            postMessage(first, second);
+        }
 
         if (typeof self != "undefined") {
             var isWorker = false;
@@ -1631,7 +1644,6 @@
 
 
             self.addEventListener('message', function (e) {
-
                 if (isWorker) {
                     if (reuseMemory) {
                         if (e.data.reuse) {
@@ -1647,7 +1659,7 @@
                                 e.data.info,
                                 function () {
                                     if (sliceMode && sliceNum !== lastSliceNum) {
-                                        postMessage(e.data, [e.data.buf]);
+                                        postMessageBox(e.data, [e.data.buf], '1674');
                                     }
                                 }
                             );
@@ -1668,7 +1680,7 @@
                             e.data.infos[0].timeCopy += (nowValue() - copyStart);
                         }
                         // move on
-                        postMessage(e.data, [e.data.slice]);
+                        postMessageBox(e.data, [e.data.slice], '1695');
 
                         // next frame in the pipe?
                         awaiting -= 1;
@@ -1679,7 +1691,7 @@
                                 data.info,
                                 function () {
                                     if (sliceMode && sliceNum !== lastSliceNum) {
-                                        postMessage(data, [data.buf]);
+                                        postMessageBox(data, [data.buf], '1706');
                                     }
                                 }
                             );
@@ -1689,7 +1701,6 @@
 
                     if (e.data.setSliceCnt) {
                         setSliceCnt(e.data.sliceCnt);
-                        return;
                     }
 
                 } else {
@@ -1714,14 +1725,13 @@
                                 timeDecoding = finishDecoding - startDecoding;
                                 infos[0].timeDecoding = timeDecoding;
                                 infos[0].timeCopy = 0;
-
-                                postMessage({
+                                postMessageBox({
                                     slice: copyU8.buffer,
                                     sliceNum: sliceNum,
                                     width: width,
                                     height: height,
                                     infos: infos
-                                }, [copyU8.buffer]); // 2nd parameter is used to indicate transfer of ownership
+                                }, [copyU8.buffer], '1746'); // 2nd parameter is used to indicate transfer of ownership
 
                                 awaiting = sliceCnt - 1;
 
@@ -1737,14 +1747,13 @@
                                 // buffer needs to be copied because we give up ownership
                                 var copyU8 = new Uint8Array(getMem(buffer.length));
                                 copyU8.set(buffer, 0, buffer.length);
-
-                                postMessage({
+                                postMessageBox({
                                     buf: copyU8.buffer,
                                     length: buffer.length,
                                     width: width,
                                     height: height,
                                     infos: infos
-                                }, [copyU8.buffer]); // 2nd parameter is used to indicate transfer of ownership
+                                }, [copyU8.buffer], '1768');
 
                             };
 
@@ -1758,17 +1767,17 @@
                                 var copyU8 = new Uint8Array(buffer.length);
                                 copyU8.set(buffer, 0, buffer.length);
 
-                                postMessage({
+                                postMessageBox({
                                     buf: copyU8.buffer,
                                     length: buffer.length,
                                     width: width,
                                     height: height,
                                     infos: infos
-                                }, [copyU8.buffer]); // 2nd parameter is used to indicate transfer of ownership
+                                }, [copyU8.buffer], '1784'); // 2nd parameter is used to indicate transfer of ownership
 
                             };
                         }
-                        postMessage({consoleLog: "broadway worker initialized"});
+                        postMessageBox({consoleLog: "broadway worker initialized"}, null, '1788');
                     }
                 }
 
